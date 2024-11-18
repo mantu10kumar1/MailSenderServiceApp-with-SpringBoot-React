@@ -16,9 +16,11 @@ public class SendEmailWithFile {
 	@Test
 	void emailSendWithFileTest() {
 		System.out.println("Sending email...");
-		emailService.sendEmailWithFile("mantukumar4376@gmail.com", 
-				"Email From Spring Boot With File ", 
-				"This email contains file",
+//		emailService.sendEmailWithFile("mantukumar4376@gmail.com", 
+		emailService.sendEmailWithFile("220101120006@cutm.ac.in", 
+
+				"For Course ", 
+				"You have to pay fine of 10000 rs",
 //				new File("/D:/MailSenderSpringBoot_React_Project/MailSenderApplication/src/main/resources/static/Images/male.png") );
 				new File("/D:/MailSenderSpringBoot_React_Project/MailSenderApplication/src/main/resources/static/Images/myImage.jpg") );
 

@@ -8,12 +8,14 @@ import java.nio.file.StandardCopyOption;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import com.app.mail.sender.repository.EmailRepository;
 import com.app.mail.sender.service.EmailService;
 
 import jakarta.mail.MessagingException;
@@ -27,6 +29,7 @@ public class EmailServiceImpl implements EmailService{
 //	private JavaMailSender mailSender;
 	// OR , We can create constructor of JavaMailSender instead of @Autowired
 	
+//	private EmailRepository emailRepo;
 	private JavaMailSender mailSender;
 	
 	public EmailServiceImpl(JavaMailSender mailSender) {
@@ -112,7 +115,7 @@ public class EmailServiceImpl implements EmailService{
 			MimeMessageHelper helper = new MimeMessageHelper(mimeMessage , true);
 			helper.setFrom("mantudemo8@gmail.com");
 			helper.setTo(to);
-			helper.setText(message);
+			helper.setText(message,true);
 			helper.setSubject(subject);
 			File file = new File("src/main/resources/email/test.png");
 			Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);

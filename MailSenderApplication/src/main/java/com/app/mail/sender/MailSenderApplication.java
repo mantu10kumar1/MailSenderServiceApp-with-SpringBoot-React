@@ -8,6 +8,7 @@ public class MailSenderApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(MailSenderApplication.class, args);
+		System.out.println("\n\t\t\t\t\tOur Application MailSender is running...\n");
 	}
 
 }
