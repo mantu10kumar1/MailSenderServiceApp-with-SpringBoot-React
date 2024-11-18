@@ -1,0 +1,2 @@
+1. Flowbite  --> For tailwind references
+2. Temp Mail --> For generating fake email
