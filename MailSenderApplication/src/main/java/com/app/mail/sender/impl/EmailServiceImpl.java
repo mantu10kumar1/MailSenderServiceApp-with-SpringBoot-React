@@ -5,20 +5,30 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import com.app.mail.sender.repository.EmailRepository;
+import com.app.mail.sender.emailmodel.Message;
 import com.app.mail.sender.service.EmailService;
 
+import jakarta.mail.BodyPart;
+import jakarta.mail.Folder;
 import jakarta.mail.MessagingException;
+import jakarta.mail.Multipart;
+import jakarta.mail.Part;
+import jakarta.mail.Session;
+import jakarta.mail.Store;
 import jakarta.mail.internet.MimeMessage;
 @Service
 public class EmailServiceImpl implements EmailService{
@@ -131,4 +141,103 @@ public class EmailServiceImpl implements EmailService{
 		}
 	}
 
+	// Receiving all the emails
+	
+	@Value("${mail.store.protocol}")
+	String  protocol;
+	
+	@Value("${mail.imaps.host}")
+	String  host;
+	
+	@Value("${mail.imaps.port}")
+	String  port;
+	
+	@Value("${spring.mail.username}")
+	String  username;
+	
+	@Value("${spring.mail.password}")
+	String  password;
+
+	private String content;
+	
+	@Override
+	public List<Message> getInboxMessages() throws IOException {
+		Properties configurations = new Properties();
+		
+		configurations.setProperty("mail.store.protocol", protocol );
+		configurations.setProperty("mail.imaps.host", host);
+		configurations.setProperty("mail.imaps.port", port);
+		
+		Session session = Session.getDefaultInstance(configurations);
+		
+		try {
+			Store store = session.getStore();
+			
+			store.connect(username , password);
+			
+			Folder inbox = store.getFolder("INBOX");
+			inbox.open(Folder.READ_ONLY);
+			
+			jakarta.mail.Message[] messages = inbox.getMessages();
+			
+			List<Message> list = new ArrayList<>();
+			
+			for(jakarta.mail.Message message  : messages) {
+				System.out.println(message.getSubject());
+				System.out.println("----------------");
+				
+				String content = getContentFromEmailMessage(message);
+				List<String> files = getFilesFromEmailMessage(message);
+				list.add(Message.builder().subjects(message.getSubject()).content(content).files(files).build());
+			}
+			
+			return list;
+			
+		} catch (MessagingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			throw new RuntimeException();
+		}
+		
+	}
+
+	private List<String> getFilesFromEmailMessage(jakarta.mail.Message message) throws MessagingException, IOException {
+		List<String> files = new ArrayList<>();
+		if(message.isMimeType("multipart/*")) {
+			Multipart content = (Multipart) message.getContent();
+			for(int i = 0; i<content.getCount(); i++) {
+				BodyPart bodyPart = content.getBodyPart(i);
+				if(Part.ATTACHMENT.equalsIgnoreCase(bodyPart.getDisposition())) {
+					InputStream inputStream = bodyPart.getInputStream();
+					File file = new File("src/main/resources/email"+bodyPart.getFileName());
+					
+					// saved file
+					Files.copy(inputStream,file.toPath(),StandardCopyOption.REPLACE_EXISTING);
+					
+					// urls
+					files.add(file.getAbsolutePath());
+					
+				}
+			}
+		}
+		return files;
+	}
+
+	private String getContentFromEmailMessage(jakarta.mail.Message message) throws MessagingException, IOException {
+		if(message.isMimeType("text/plain") || message.isMimeType("text/html")) {
+			String content = (String) message.getContent();
+			return content;
+		} else if(message.isMimeType("multipart/*")) {
+			Multipart part = (Multipart) message.getContent();
+			for(int i = 0; i<part.getCount();i++) {
+				BodyPart bodyPart = part.getBodyPart(i);
+				if(bodyPart.isMimeType("text/plain")) {
+					return (String) bodyPart.getContent();
+				}
+			}
+		}
+		return null;
+	}
+
+	
 }

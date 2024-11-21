@@ -1,6 +1,9 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import toast from 'react-hot-toast';
 import { sendEmail } from '../Services/email.service';
+import { Editor } from '@tinymce/tinymce-react';
+
+
 function EmailSender() {
 
     const [emailData, setEmailData] = useState({
@@ -10,6 +13,7 @@ function EmailSender() {
     });
 
     const [sending, setSending] = useState(false);
+    const editorRef = useRef(null);
 
     async function handleFileChange(event, name) {
         setEmailData({ ...emailData, [name]: event.target.value });
@@ -33,6 +37,7 @@ function EmailSender() {
                 subject: '',
                 message: ''
             });
+            editorRef.current.setContent('');
         } catch (error) {
             console.log("Occured error while sending email..");
             toast.error("Email not sent..");
@@ -43,7 +48,7 @@ function EmailSender() {
 
     return (
         <div className="w-full min-h-screen flex justify-center items-center ">
-            <div className="email_card md:w-1/3 w-full mx-4 md:mx-0 dark:bg-gray-700 dark:text-white dark:border-none bg-white p-4 rounded-lg border shadow ">
+            <div className="email_card md:w-1/2 w-full mx-4 md:mx-0 dark:bg-gray-700 dark:text-white dark:border-none bg-white p-4 rounded-lg border shadow ">
                 <h1 className='text-gray-900 text-3xl dark:text-gray-200 ' >Email Sender</h1>
                 <p className='text-gray-700 dark:text-gray-300 '>
                     Send email to your favorite person with your own app....
@@ -75,14 +80,45 @@ function EmailSender() {
                         <div className="form_field mt-4 ">
 
                             <label htmlFor="message" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your message</label>
-                            <textarea
+                            {/* <textarea
                                 id="message"
                                 value={emailData.message}
                                 onChange={(event) => handleFileChange(event, "message")}
                                 rows="10"
                                 className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Write your thoughts here...">
 
-                            </textarea>
+                            </textarea> */}
+                            <Editor
+                                onEditorChange= {(event) =>{
+                                    setEmailData({...emailData , 'message':editorRef.current.getContent()});
+                                }}
+                                onInit={(evt, editor) => editorRef.current = editor}
+                                apiKey='0tsg7bxa7yal8annioecczit2axziyp0ra9p73ruikefgfpi'
+                                // value={emailData.message}
+                                initialValue="<p>This is the initial content of the editor.</p>"
+                                init={{
+                                    plugins: [
+                                      // Core editing features
+                                      'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'image', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount',
+                                      // Your account includes a free trial of TinyMCE premium features
+                                      // Try the most popular premium features until Dec 3, 2024:
+                                      'checklist', 'mediaembed', 'casechange', 'export', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'editimage', 'advtemplate', 'ai', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown',
+                                      // Early access to document converters
+                                      'importword', 'exportword', 'exportpdf'
+                                    ],
+                                    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
+                                    tinycomments_mode: 'embedded',
+                                    tinycomments_author: 'Author name',
+                                    mergetags_list: [
+                                      { value: 'First.Name', title: 'First Name' },
+                                      { value: 'Email', title: 'Email' },
+                                    ],
+                                    ai_request: (request, respondWith) => respondWith.string(() => Promise.reject('See docs to implement AI Assistant')),
+                                    exportpdf_converter_options: { 'format': 'Letter', 'margin_top': '1in', 'margin_right': '1in', 'margin_bottom': '1in', 'margin_left': '1in' },
+                                    exportword_converter_options: { 'document': { 'size': 'Letter' } },
+                                    importword_converter_options: { 'formatting': { 'styles': 'inline', 'resets': 'inline',	'defaults': 'inline', } },
+                                  }}
+                            />
 
                         </div>
                     </div>
