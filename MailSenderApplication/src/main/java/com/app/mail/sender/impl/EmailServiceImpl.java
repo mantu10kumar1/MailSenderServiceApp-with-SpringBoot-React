@@ -188,7 +188,7 @@ public class EmailServiceImpl implements EmailService{
 				
 				String content = getContentFromEmailMessage(message);
 				List<String> files = getFilesFromEmailMessage(message);
-				list.add(Message.builder().subjects(message.getSubject()).content(content).files(files).build());
+//				list.add(Message.builder().subjects(message.getSubject()).content(content).files(files).build());
 			}
 			
 			return list;
